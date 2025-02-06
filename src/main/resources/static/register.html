@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Inscription Médecin</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 400px; margin: 0 auto; padding: 20px; }
+        input { width: 100%; margin: 10px 0; padding: 10px; }
+        button { width: 100%; padding: 10px; background-color: #4CAF50; color: white; border: none; }
+    </style>
+</head>
+<body>
+    <h2>Inscription Médecin</h2>
+    <form id="registrationForm">
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="text" id="nom" placeholder="Nom" required>
+        <input type="text" id="prenom" placeholder="Prénom" required>
+        <input type="password" id="password" placeholder="Mot de passe" required>
+        <input type="tel" id="telephone" placeholder="Téléphone" required>
+        <input type="text" id="adresse" placeholder="Adresse" required>
+        <button type="button" onclick="initRegistration()">Initialiser Inscription</button>
+    </form>
+
+    <div id="verificationSection" style="display:none;">
+        <input type="text" id="verificationCode" placeholder="Code de vérification">
+        <button onclick="completeRegistration()">Vérifier et Compléter</button>
+    </div>
+
+    <script>
+        function initRegistration() {
+            const data = {
+                email: document.getElementById('email').value,
+                nom: document.getElementById('nom').value,
+                prenom: document.getElementById('prenom').value,
+                password: document.getElementById('password').value,
+                telephone: document.getElementById('telephone').value,
+                adresse: document.getElementById('adresse').value
+            };
+
+            fetch('http://localhost:1234/api/auth/register/init', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (response.ok) {
+                    document.getElementById('verificationSection').style.display = 'block';
+                    alert('Code de vérification envoyé !');
+                } else {
+                    throw new Error('Erreur lors de l\'inscription');
+                }
+            })
+            .catch(error => alert(error.message));
+        }
+
+        function completeRegistration() {
+            const data = {
+                email: document.getElementById('email').value,
+                nom: document.getElementById('nom').value,
+                prenom: document.getElementById('prenom').value,
+                password: document.getElementById('password').value,
+                telephone: document.getElementById('telephone').value,
+                adresse: document.getElementById('adresse').value
+            };
+            const verificationCode = document.getElementById('verificationCode').value;
+
+            fetch(`http://localhost:1234/api/auth/register/verify?verificationCode=${verificationCode}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.token) {
+                    alert('Inscription réussie !');
+                    localStorage.setItem('token', data.token);
+                } else {
+                    alert(data.error || 'Erreur lors de la vérification');
+                }
+            })
+            .catch(error => alert(error.message));
+        }
+    </script>
+</body>
+</html>

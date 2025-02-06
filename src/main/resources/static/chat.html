@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat EHR Assistant</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: #2196F3;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logout-btn {
+            background: white;
+            color: #2196F3;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            background: #f5f5f5;
+            overflow-y: auto;
+        }
+        .message-input {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #ddd;
+            display: flex;
+            gap: 10px;
+        }
+        .message-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .message-input button {
+            padding: 10px 20px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            max-width: 70%;
+        }
+        .sent {
+            background: #2196F3;
+            color: white;
+            align-self: flex-end;
+        }
+        .received {
+            background: white;
+            align-self: flex-start;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h2>EHR Assistant Chat</h2>
+    <button class="logout-btn" onclick="logout()">Déconnexion</button>
+</div>
+
+<div class="chat-container" id="chatMessages">
+    <!-- Les messages seront ajoutés ici dynamiquement -->
+</div>
+
+<div class="message-input">
+    <input type="text" id="messageInput" placeholder="Écrivez votre message...">
+    <button onclick="sendMessage()">Envoyer</button>
+</div>
+
+<script>
+    // Vérifier l'authentification
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = '/login';
+    }
+
+    function logout() {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+    }
+
+    function addMessage(text, isSent) {
+        const chatContainer = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+        messageDiv.textContent = text;
+        chatContainer.appendChild(messageDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const message = input.value.trim();
+
+        if (message) {
+            addMessage(message, true);
+            input.value = '';
+
+            // Simuler une réponse (à remplacer par une vraie API)
+            setTimeout(() => {
+                addMessage("Message reçu!", false);
+            }, 1000);
+        }
+    }
+
+    // Écouter la touche Entrée
+    document.getElementById('messageInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+</script>
+</body>
+</html>
