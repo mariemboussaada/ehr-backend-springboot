@@ -20,6 +20,61 @@
             justify-content: space-between;
             align-items: center;
         }
+        .profile-container {
+            display: flex;
+            align-items: center;
+        }
+        .profile-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #FF5722;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            margin-right: 10px;
+            position: relative;
+            cursor: pointer;
+        }
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .profile-avatar-edit {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            background: #2196F3;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+        }
+        .search-container {
+            display: flex;
+            align-items: center;
+            margin-right: 20px;
+        }
+        .search-input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+            width: 200px;
+        }
+        .search-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+        }
         .logout-btn {
             background: white;
             color: #2196F3;
@@ -76,7 +131,18 @@
 </head>
 <body>
 <div class="header">
-    <h2>EHR Assistant Chat</h2>
+    <div class="profile-container">
+        <div id="profileAvatar" class="profile-avatar">
+            <div id="avatarContent">A</div>
+            <div class="profile-avatar-edit">✎</div>
+            <input type="file" id="fileInput" style="display: none;" accept="image/*">
+        </div>
+        <h2>EHR Assistant Chat</h2>
+    </div>
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Rechercher..." class="search-input">
+        <button class="search-button">🔍</button>
+    </div>
     <button class="logout-btn" onclick="logout()">Déconnexion</button>
 </div>
 
@@ -96,11 +162,88 @@
         window.location.href = '/login';
     }
 
+    // Sélectionner l'avatar et le bouton d'édition
+    const profileAvatar = document.getElementById('profileAvatar');
+    const avatarContent = document.getElementById('avatarContent');
+    const fileInput = document.getElementById('fileInput');
+
+    // Fonction de déconnexion
     function logout() {
         localStorage.removeItem('token');
+        localStorage.removeItem('doctorInfo');
         window.location.href = '/login';
     }
 
+    // Fonction pour définir l'avatar avec la première lettre de l'email
+    function setProfileAvatar(email) {
+        const firstLetter = email[0].toUpperCase();
+        avatarContent.textContent = firstLetter;
+        avatarContent.style.display = 'flex';
+
+        // Supprimer l'image existante si elle existe
+        const existingImg = profileAvatar.querySelector('img');
+        if (existingImg) {
+            existingImg.remove();
+        }
+    }
+
+    // Fonction pour importer et afficher une nouvelle photo
+    function importProfilePicture() {
+        fileInput.click();
+    }
+
+    // Écouteur pour l'importation de fichier
+    fileInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // Créer un nouvel élément image
+                const img = document.createElement('img');
+                img.src = e.target.result;
+
+                // Masquer le contenu textuel
+                avatarContent.style.display = 'none';
+
+                // Supprimer l'image existante si elle existe
+                const existingImg = profileAvatar.querySelector('img');
+                if (existingImg) {
+                    existingImg.remove();
+                }
+
+                // Ajouter la nouvelle image
+                profileAvatar.insertBefore(img, avatarContent);
+
+                // Sauvegarder l'image dans le localStorage
+                localStorage.setItem('profilePicture', e.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Ajouter un écouteur d'événement sur l'avatar pour l'édition
+    profileAvatar.addEventListener('click', importProfilePicture);
+
+    // Fonction de recherche
+    document.querySelector('.search-button').addEventListener('click', function() {
+        const searchTerm = document.getElementById('searchInput').value.trim();
+        if (searchTerm) {
+            filterMessages(searchTerm);
+        }
+    });
+
+    function filterMessages(searchTerm) {
+        const messages = document.querySelectorAll('.message');
+        messages.forEach(message => {
+            if (message.textContent.toLowerCase().includes(searchTerm.toLowerCase())) {
+                message.style.display = 'block';
+            } else {
+                message.style.display = 'none';
+            }
+        });
+    }
+
+    // Fonctions de gestion des messages
     function addMessage(text, isSent) {
         const chatContainer = document.getElementById('chatMessages');
         const messageDiv = document.createElement('div');
@@ -131,6 +274,23 @@
             sendMessage();
         }
     });
+
+    // Au chargement, vérifier s'il y a une photo sauvegardée
+    window.onload = function() {
+        const doctorInfo = JSON.parse(localStorage.getItem('doctorInfo'));
+        const savedProfilePicture = localStorage.getItem('profilePicture');
+
+        if (savedProfilePicture) {
+            // Créer et afficher l'image sauvegardée
+            const img = document.createElement('img');
+            img.src = savedProfilePicture;
+            avatarContent.style.display = 'none';
+            profileAvatar.insertBefore(img, avatarContent);
+        } else if (doctorInfo) {
+            // Sinon, utiliser la première lettre de l'email
+            setProfileAvatar(doctorInfo.email);
+        }
+    };
 </script>
 </body>
 </html>
