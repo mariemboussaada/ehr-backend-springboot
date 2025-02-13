@@ -130,4 +130,32 @@ public class AuthenticationService {
                 .build();
     }
 
+    public void logout(String token) {
+        if (!StringUtils.hasText(token)) {
+            throw new IllegalArgumentException("Token ne peut pas être vide");
+        }
+
+        try {
+            String email = jwtService.extractEmail(token);
+
+            Doctor doctor = doctorRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+            System.out.println("Déconnexion de l'utilisateur : " + email);
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur lors de la déconnexion", e);
+        }
+    }
+
+    public boolean checkEmailExists(String email) {
+        if (!isValidEmailFormat(email)) {
+            throw new IllegalArgumentException("Format d'email invalide");
+        }
+        return doctorRepository.findByEmail(email).isPresent();
+    }
+
+    private boolean isValidEmailFormat(String email) {
+        String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
+        return email.matches(emailRegex);
+    }
 }
