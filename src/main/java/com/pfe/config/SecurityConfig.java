@@ -51,7 +51,8 @@ public class SecurityConfig {
                                 "/static/**",      // Ressources statiques
                                 "/*.html",         // Fichiers HTML
                                 "/*.css",          // Fichiers CSS
-                                "/*.js"            // Fichiers JavaScript
+                                "/*.js",
+                                "/api/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -81,11 +82,14 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost",
                 "http://localhost:4200",
                 "http://10.0.2.2:4200",
                 "capacitor://localhost",
                 "http://10.0.2.2:1234",
-                "http://10.0.2.2"
+                "http://10.0.2.2",
+                "http://192.168.1.14:4200",
+                "http://192.168.1.14:1234"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));

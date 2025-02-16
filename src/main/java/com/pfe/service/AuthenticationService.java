@@ -106,29 +106,7 @@ public class AuthenticationService {
                 .build();
     }
 
-    public String initiateLogin(String email) {
-        if (!doctorRepository.existsByEmail(email)) {
-            throw new RuntimeException("Email non trouvé");
-        }
-        return emailService.generateVerificationCode(email);
-    }
 
-    public AuthenticationResponse completeLogin(AuthenticationRequest request) {
-        var doctor = doctorRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Doctor non trouvé"));
-
-        if (!emailService.verifyCode(request.getEmail(), request.getVerificationCode())) {
-            return AuthenticationResponse.builder()
-                    .error("Code de vérification invalide ou expiré")
-                    .build();
-        }
-
-        var token = jwtService.generateToken(doctor);
-        return AuthenticationResponse.builder()
-                .token(token)
-                .doctor(doctor)
-                .build();
-    }
 
     public void logout(String token) {
         if (!StringUtils.hasText(token)) {
