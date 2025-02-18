@@ -20,10 +20,10 @@ public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
 
-    @PostMapping("/register/init")
+    @PostMapping("/register")
     public ResponseEntity<String> initiateRegistration(@RequestBody RegisterRequest request) {
         try {
-            String verificationCode = authenticationService.initiateRegistration(request);
+            authenticationService.initiateRegistration(request);
             return ResponseEntity.ok("Code de vérification envoyé à votre email");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -54,7 +54,7 @@ public class AuthenticationController {
         }
     }
 
-    @PostMapping("/reset-password/init")
+    @PostMapping("/reset-password")
     public ResponseEntity<String> initiatePasswordReset(@RequestParam String email) {
         try {
             authenticationService.initiatePasswordReset(email);

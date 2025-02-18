@@ -73,11 +73,11 @@ public class AuthenticationService {
     }
 
 
-    public String initiateRegistration(RegisterRequest request) {
+    public void initiateRegistration(RegisterRequest request) {
         if (doctorRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email déjà utilisé");
         }
-        return emailService.generateVerificationCode(request.getEmail());
+         emailService.sendVerificationEmail(request.getEmail());
     }
 
     public AuthenticationResponse completeRegistration(RegisterRequest request, String verificationCode) {

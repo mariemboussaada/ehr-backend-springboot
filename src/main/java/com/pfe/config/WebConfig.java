@@ -10,15 +10,13 @@ public class WebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
                 .allowedOrigins(
-                        "http://localhost:4200",
-                        "http://10.0.2.2:4200",
-                        "capacitor://localhost",
-                        "http://10.0.2.2:1234",
-                        "http://10.0.2.2"
+                        "http://localhost:4200",     // Pour le web
+                        "http://localhost:8100",     // Pour ionic serve
+                        "http://10.0.2.2:4200",     // Pour l'émulateur Android
+                        "capacitor://localhost"      // Pour l'app mobile
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
-                .allowCredentials(true)
-                .exposedHeaders("Authorization");
+                .allowCredentials(true);
     }
 }
