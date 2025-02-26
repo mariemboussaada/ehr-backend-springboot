@@ -102,5 +102,21 @@ public class AuthenticationController {
         }
     }
 
+    @PostMapping("/change-password")
+    public ResponseEntity<String> changePassword(
+            @RequestBody ResetPasswordRequest request,
+            Principal principal) {
+        try {
+            authenticationService.changePassword(
+                    principal.getName(),  // Email de l'utilisateur connecté
+                    request.getOldPassword(),  // Ancien mot de passe
+                    request.getNewPassword()   // Nouveau mot de passe
+            );
+            return ResponseEntity.ok("Mot de passe modifié avec succès");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 
 }
