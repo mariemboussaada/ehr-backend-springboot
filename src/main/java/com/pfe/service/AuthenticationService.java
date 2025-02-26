@@ -106,28 +106,34 @@ public class AuthenticationService {
                 .build();
     }
 
-    public String initiateLogin(String email) {
-        if (!doctorRepository.existsByEmail(email)) {
-            throw new RuntimeException("Email non trouvé");
-        }
-        return emailService.generateVerificationCode(email);
-    }
 
-    public AuthenticationResponse completeLogin(AuthenticationRequest request) {
-        var doctor = doctorRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Doctor non trouvé"));
 
-        if (!emailService.verifyCode(request.getEmail(), request.getVerificationCode())) {
-            return AuthenticationResponse.builder()
-                    .error("Code de vérification invalide ou expiré")
-                    .build();
+    public void logout(String token) {
+        if (!StringUtils.hasText(token)) {
+            throw new IllegalArgumentException("Token ne peut pas être vide");
         }
 
-        var token = jwtService.generateToken(doctor);
-        return AuthenticationResponse.builder()
-                .token(token)
-                .doctor(doctor)
-                .build();
+        try {
+            String email = jwtService.extractEmail(token);
+
+            Doctor doctor = doctorRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+            System.out.println("Déconnexion de l'utilisateur : " + email);
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur lors de la déconnexion", e);
+        }
     }
 
+    public boolean checkEmailExists(String email) {
+        if (!isValidEmailFormat(email)) {
+            throw new IllegalArgumentException("Format d'email invalide");
+        }
+        return doctorRepository.findByEmail(email).isPresent();
+    }
+
+    private boolean isValidEmailFormat(String email) {
+        String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
+        return email.matches(emailRegex);
+    }
 }
