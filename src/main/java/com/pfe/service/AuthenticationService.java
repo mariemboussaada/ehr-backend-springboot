@@ -8,6 +8,7 @@ import com.pfe.repository.DoctorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -135,5 +136,24 @@ public class AuthenticationService {
     private boolean isValidEmailFormat(String email) {
         String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
         return email.matches(emailRegex);
+    }
+
+    public void changePassword(String email, String oldPassword, String newPassword) {
+        Doctor doctor = doctorRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé"));
+
+        // Vérifier l'ancien mot de passe
+        if (!passwordEncoder.matches(oldPassword, doctor.getPassword())) {
+            throw new IllegalArgumentException("L'ancien mot de passe est incorrect");
+        }
+
+        // Valider le nouveau mot de passe
+        if (newPassword.length() < 8) {
+            throw new IllegalArgumentException("Le nouveau mot de passe doit contenir au moins 8 caractères");
+        }
+
+        // Encoder et enregistrer le nouveau mot de passe
+        doctor.setPassword(passwordEncoder.encode(newPassword));
+        doctorRepository.save(doctor);
     }
 }

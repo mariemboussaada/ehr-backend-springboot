@@ -16,8 +16,9 @@ public class WebConfig implements WebMvcConfigurer {
                         "capacitor://localhost",
                         "http://10.0.2.2:1234",
                         "http://10.0.2.2",
-                        "http://192.168.1.14:4200",
-                        "http://192.168.1.14:1234"
+                        "http://192.168.1.13:4200",
+                        "http://192.168.1.13:1234",
+                        "http://192.168.1.15:1234"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
