@@ -6,8 +6,23 @@ import com.pfe.dto.response.AuthenticationResponse;
 import com.pfe.model.Doctor;
 import com.pfe.repository.DoctorRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.Objects;
+import java.util.UUID;
 
 @Service
 public class AuthenticationService {
@@ -59,11 +74,11 @@ public class AuthenticationService {
     }
 
 
-    public String initiateRegistration(RegisterRequest request) {
+    public void initiateRegistration(RegisterRequest request) {
         if (doctorRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email déjà utilisé");
         }
-        return emailService.generateVerificationCode(request.getEmail());
+         emailService.sendVerificationEmail(request.getEmail());
     }
 
     public AuthenticationResponse completeRegistration(RegisterRequest request, String verificationCode) {
@@ -92,27 +107,53 @@ public class AuthenticationService {
                 .build();
     }
 
-    public String initiateLogin(String email) {
-        if (!doctorRepository.existsByEmail(email)) {
-            throw new RuntimeException("Email non trouvé");
+
+
+    public void logout(String token) {
+        if (!StringUtils.hasText(token)) {
+            throw new IllegalArgumentException("Token ne peut pas être vide");
         }
-        return emailService.generateVerificationCode(email);
+
+        try {
+            String email = jwtService.extractEmail(token);
+
+            Doctor doctor = doctorRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+            System.out.println("Déconnexion de l'utilisateur : " + email);
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur lors de la déconnexion", e);
+        }
     }
 
-    public AuthenticationResponse completeLogin(AuthenticationRequest request) {
-        var doctor = doctorRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Doctor non trouvé"));
+    public boolean checkEmailExists(String email) {
+        if (!isValidEmailFormat(email)) {
+            throw new IllegalArgumentException("Format d'email invalide");
+        }
+        return doctorRepository.findByEmail(email).isPresent();
+    }
 
-        if (!emailService.verifyCode(request.getEmail(), request.getVerificationCode())) {
-            return AuthenticationResponse.builder()
-                    .error("Code de vérification invalide ou expiré")
-                    .build();
+    private boolean isValidEmailFormat(String email) {
+        String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
+        return email.matches(emailRegex);
+    }
+
+    public void changePassword(String email, String oldPassword, String newPassword) {
+        Doctor doctor = doctorRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé"));
+
+        // Vérifier l'ancien mot de passe
+        if (!passwordEncoder.matches(oldPassword, doctor.getPassword())) {
+            throw new IllegalArgumentException("L'ancien mot de passe est incorrect");
         }
 
-        var token = jwtService.generateToken(doctor);
-        return AuthenticationResponse.builder()
-                .token(token)
-                .doctor(doctor)
-                .build();
+        // Valider le nouveau mot de passe
+        if (newPassword.length() < 8) {
+            throw new IllegalArgumentException("Le nouveau mot de passe doit contenir au moins 8 caractères");
+        }
+
+        // Encoder et enregistrer le nouveau mot de passe
+        doctor.setPassword(passwordEncoder.encode(newPassword));
+        doctorRepository.save(doctor);
     }
 }

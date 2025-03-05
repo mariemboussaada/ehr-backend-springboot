@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -21,7 +22,6 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final VerificationCodeRepository verificationCodeRepository;
 
-
     public String generateVerificationCode(String email) {
         String code = generateRandomCode();
         VerificationCode verificationCode = VerificationCode.builder()
@@ -30,11 +30,10 @@ public class EmailService {
                 .expiryDate(LocalDateTime.now().plusMinutes(15))
                 .build();
         verificationCodeRepository.save(verificationCode);
-        sendVerificationEmail(email, code);
         return code;
     }
-
-    public void sendVerificationEmail(String to, String code) {
+    public void sendVerificationEmail(String to) {
+        String code = generateVerificationCode(to);
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
