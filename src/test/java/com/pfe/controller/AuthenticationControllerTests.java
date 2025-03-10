@@ -38,7 +38,7 @@ public class AuthenticationControllerTests {
 
     @Test
     public void testInitiateRegistration() throws Exception {
-        when(authenticationService.initiateRegistration(any(RegisterRequest.class))).thenReturn("123456");
+       // when(authenticationService.initiateRegistration(any(RegisterRequest.class))).thenReturn("123456");
 
         mockMvc.perform(post("/api/auth/register/init")
                         .contentType(MediaType.APPLICATION_JSON)
