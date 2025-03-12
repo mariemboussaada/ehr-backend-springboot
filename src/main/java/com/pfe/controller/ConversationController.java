@@ -9,7 +9,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
+
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/api/conversations")
@@ -49,7 +52,13 @@ public class ConversationController {
             @RequestParam String userId
     ) {
         return conversationService.getConversationById(id, userId)
-                .map(ResponseEntity::ok)
+                .map(conversation -> {
+                    // Tri des messages par date
+                    conversation.setMessages(conversation.getMessages().stream()
+                            .sorted(Comparator.comparing(Conversation.Message::getSentAt))
+                            .collect(Collectors.toList()));
+                    return ResponseEntity.ok(conversation);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 

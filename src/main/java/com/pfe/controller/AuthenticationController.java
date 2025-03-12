@@ -21,7 +21,7 @@ public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
 
-    @PostMapping("/register")
+    @PostMapping("/register/init")
     public ResponseEntity<String> initiateRegistration(@RequestBody RegisterRequest request) {
         try {
             authenticationService.initiateRegistration(request);
@@ -29,6 +29,12 @@ public class AuthenticationController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    // Conserver l'endpoint original pour la rétrocompatibilité si nécessaire
+    @PostMapping("/register")
+    public ResponseEntity<String> initiateRegistrationOriginal(@RequestBody RegisterRequest request) {
+        return initiateRegistration(request);
     }
 
     @PostMapping("/register/verify")
@@ -117,6 +123,4 @@ public class AuthenticationController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-
-
 }
