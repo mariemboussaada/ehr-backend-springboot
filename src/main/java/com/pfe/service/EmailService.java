@@ -32,6 +32,7 @@ public class EmailService {
         verificationCodeRepository.save(verificationCode);
         return code;
     }
+
     public void sendVerificationEmail(String to) {
         String code = generateVerificationCode(to);
         try {

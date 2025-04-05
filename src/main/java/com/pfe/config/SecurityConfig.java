@@ -43,6 +43,7 @@ public class SecurityConfig {
                                 "/",                // URL racine
                                 "/index",
                                 "/chat",
+                                "/add-patient",
                                 "/api/test/**",// Page index
                                 "/login",          // Page login
                                 "/register",       // Page register
@@ -92,7 +93,9 @@ public class SecurityConfig {
                 "http://192.168.1.14:4200",
                 "http://192.168.1.13:1234",
                 "http://192.168.1.14:1234",
-                "http://192.168.1.15:1234"
+                "http://192.168.1.15:1234",
+                "http://192.168.1.12:1234",
+                "http://192.168.1.12:4200"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));

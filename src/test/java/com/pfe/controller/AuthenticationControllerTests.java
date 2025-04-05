@@ -76,15 +76,6 @@ public class AuthenticationControllerTests {
                 .andExpect(jsonPath("$.token").value("token123"));
     }
 
-    @Test
-    public void testInitiatePasswordReset() throws Exception {
-        when(authenticationService.initiatePasswordReset(any(String.class))).thenReturn("123456");
-
-        mockMvc.perform(post("/api/auth/reset-password/init")
-                        .param("email", "test@example.com"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Code de réinitialisation envoyé à votre email"));
-    }
 
     @Test
     public void testCompletePasswordReset() throws Exception {

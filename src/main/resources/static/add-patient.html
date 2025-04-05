@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajouter un Patient</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .form-section {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+            margin-right: 15px;
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .add-item-btn {
+            background-color: #27ae60;
+            margin-top: 10px;
+        }
+        .remove-item-btn {
+            background-color: #e74c3c;
+            margin-left: 10px;
+        }
+        .dynamic-section {
+            margin-top: 10px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        .input-group {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .input-group input {
+            flex: 1;
+            margin-right: 10px;
+        }
+        .required::after {
+            content: " *";
+            color: red;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Ajouter un nouveau patient</h1>
+    <form id="patientForm" enctype="multipart/form-data">
+        <!-- Informations principales (obligatoires) -->
+        <div class="form-section">
+            <h2>Informations principales</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="nom" class="required">Nom</label>
+                    <input type="text" id="nom" name="nom" required>
+                </div>
+                <div class="form-group">
+                    <label for="prenom" class="required">Prénom</label>
+                    <input type="text" id="prenom" name="prenom" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="dateNaissance" class="required">Date de naissance</label>
+                    <input type="date" id="dateNaissance" name="dateNaissance" required>
+                </div>
+                <div class="form-group">
+                    <label for="genre" class="required">Genre</label>
+                    <select id="genre" name="genre" required>
+                        <option value="">Sélectionner</option>
+                        <option value="Homme">Homme</option>
+                        <option value="Femme">Femme</option>
+                        <option value="Autre">Autre</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="image" class="required">Photo du patient</label>
+                    <input type="file" id="image" name="image" accept="image/*">
+                </div>
+            </div>
+        </div>
+
+        <!-- Rendez-vous (obligatoire) -->
+        <div class="form-section">
+            <h2>Rendez-vous initial (optionnel)</h2>
+            <div id="rendezVousSection">
+                <div class="dynamic-section">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="rdvDate">Date</label>
+                            <input type="date" id="rdvDate" name="rendezVousInitial.date">
+                        </div>
+                        <div class="form-group">
+                            <label for="rdvHeure">Heure</label>
+                            <input type="time" id="rdvHeure" name="rendezVousInitial.heure">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="rdvMotif">Motif</label>
+                            <input type="text" id="rdvMotif" name="rendezVousInitial.motif">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="rdvNotes">Notes</label>
+                            <textarea id="rdvNotes" name="rendezVousInitial.notes" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prescription initiale (obligatoire) -->
+        <div class="form-section">
+            <h2>Prescription initiale (optionnel)</h2>
+            <div id="prescriptionSection">
+                <div class="dynamic-section">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="prescriptionDate">Date</label>
+                            <input type="date" id="prescriptionDate" name="prescriptionInitiale.date">
+                        </div>
+                    </div>
+                    <h3>Médicaments</h3>
+                    <div id="medicamentsList">
+                        <div class="medicament-item">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="medNom">Nom</label>
+                                    <input type="text" id="medNom" name="prescriptionInitiale.medicaments[0].nom">
+                                </div>
+                                <div class="form-group">
+                                    <label for="medDosage">Dosage</label>
+                                    <input type="text" id="medDosage" name="prescriptionInitiale.medicaments[0].dosage">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="medFreq">Fréquence</label>
+                                    <input type="text" id="medFreq" name="prescriptionInitiale.medicaments[0].frequence">
+                                </div>
+                                <div class="form-group">
+                                    <label for="medDuree">Durée</label>
+                                    <input type="text" id="medDuree" name="prescriptionInitiale.medicaments[0].duree">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="add-item-btn" id="addMedicament">Ajouter un médicament</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informations complémentaires (optionnelles) -->
+        <div class="form-section">
+            <h2>Informations médicales (optionnel)</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="taille">Taille (cm)</label>
+                    <input type="number" id="taille" name="taille">
+                </div>
+                <div class="form-group">
+                    <label for="poids">Poids (kg)</label>
+                    <input type="number" id="poids" name="poids">
+                </div>
+                <div class="form-group">
+                    <label for="groupeSanguin">Groupe sanguin</label>
+                    <select id="groupeSanguin" name="groupeSanguin">
+                        <option value="">Sélectionner</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Allergies (optionnel) -->
+        <div class="form-section">
+            <h2>Allergies (optionnel)</h2>
+            <div id="allergiesList">
+                <div class="input-group">
+                    <input type="text" name="allergies[0]" placeholder="Allergie">
+                    <button type="button" class="remove-item-btn">Supprimer</button>
+                </div>
+            </div>
+            <button type="button" class="add-item-btn" id="addAllergie">Ajouter une allergie</button>
+        </div>
+
+        <!-- Antécédents (optionnel) -->
+        <div class="form-section">
+            <h2>Antécédents médicaux (optionnel)</h2>
+            <div id="antecedentsList">
+                <div class="input-group">
+                    <input type="text" name="antecedents[0]" placeholder="Antécédent médical">
+                    <button type="button" class="remove-item-btn">Supprimer</button>
+                </div>
+            </div>
+            <button type="button" class="add-item-btn" id="addAntecedent">Ajouter un antécédent</button>
+        </div>
+
+        <!-- Documents (optionnel) -->
+        <div class="form-section">
+            <h2>Documents médicaux (optionnel)</h2>
+            <div id="documentsList">
+                <div class="input-group">
+                    <input type="text" name="documents[0].nom" placeholder="Nom du document">
+                    <input type="file" name="documents[0].fichier" accept="application/pdf">
+                    <button type="button" class="remove-item-btn">Supprimer</button>
+                </div>
+            </div>
+            <button type="button" class="add-item-btn" id="addDocument">Ajouter un document</button>
+        </div>
+
+        <button type="submit">Enregistrer le patient</button>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gestion de l'ajout de médicament
+        let medicamentCounter = 1;
+        document.getElementById('addMedicament').addEventListener('click', function() {
+            const medicamentsList = document.getElementById('medicamentsList');
+            const newMedicament = document.createElement('div');
+            newMedicament.className = 'medicament-item';
+            newMedicament.innerHTML = `
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="medNom${medicamentCounter}">Nom</label>
+                            <input type="text" id="medNom${medicamentCounter}" name="prescriptionInitiale.medicaments[${medicamentCounter}].nom">
+                        </div>
+                        <div class="form-group">
+                            <label for="medDosage${medicamentCounter}">Dosage</label>
+                            <input type="text" id="medDosage${medicamentCounter}" name="prescriptionInitiale.medicaments[${medicamentCounter}].dosage">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="medFreq${medicamentCounter}">Fréquence</label>
+                            <input type="text" id="medFreq${medicamentCounter}" name="prescriptionInitiale.medicaments[${medicamentCounter}].frequence">
+                        </div>
+                        <div class="form-group">
+                            <label for="medDuree${medicamentCounter}">Durée</label>
+                            <input type="text" id="medDuree${medicamentCounter}" name="prescriptionInitiale.medicaments[${medicamentCounter}].duree">
+                        </div>
+                    </div>
+                    <button type="button" class="remove-item-btn">Supprimer ce médicament</button>
+                `;
+            medicamentsList.appendChild(newMedicament);
+            medicamentCounter++;
+
+            // Attacher l'événement de suppression
+            newMedicament.querySelector('.remove-item-btn').addEventListener('click', function() {
+                medicamentsList.removeChild(newMedicament);
+            });
+        });
+
+        // Gestionnaire pour les allergies
+        let allergieCounter = 1;
+        document.getElementById('addAllergie').addEventListener('click', function() {
+            const allergiesList = document.getElementById('allergiesList');
+            const newAllergie = document.createElement('div');
+            newAllergie.className = 'input-group';
+            newAllergie.innerHTML = `
+                    <input type="text" name="allergies[${allergieCounter}]" placeholder="Allergie">
+                    <button type="button" class="remove-item-btn">Supprimer</button>
+                `;
+            allergiesList.appendChild(newAllergie);
+            allergieCounter++;
+
+            // Attacher l'événement de suppression
+            newAllergie.querySelector('.remove-item-btn').addEventListener('click', function() {
+                allergiesList.removeChild(newAllergie);
+            });
+        });
+
+        // Attacher l'événement aux boutons de suppression d'allergie existants
+        document.querySelectorAll('#allergiesList .remove-item-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                this.parentElement.remove();
+            });
+        });
+
+        // Gestionnaire pour les antécédents
+        let antecedentCounter = 1;
+        document.getElementById('addAntecedent').addEventListener('click', function() {
+            const antecedentsList = document.getElementById('antecedentsList');
+            const newAntecedent = document.createElement('div');
+            newAntecedent.className = 'input-group';
+            newAntecedent.innerHTML = `
+                    <input type="text" name="antecedents[${antecedentCounter}]" placeholder="Antécédent médical">
+                    <button type="button" class="remove-item-btn">Supprimer</button>
+                `;
+            antecedentsList.appendChild(newAntecedent);
+            antecedentCounter++;
+
+            // Attacher l'événement de suppression
+            newAntecedent.querySelector('.remove-item-btn').addEventListener('click', function() {
+                antecedentsList.removeChild(newAntecedent);
+            });
+        });
+
+        // Attacher l'événement aux boutons de suppression d'antécédents existants
+        document.querySelectorAll('#antecedentsList .remove-item-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                this.parentElement.remove();
+            });
+        });
+
+        // Gestionnaire pour les documents
+        let documentCounter = 1;
+        document.getElementById('addDocument').addEventListener('click', function() {
+            const documentsList = document.getElementById('documentsList');
+            const newDocument = document.createElement('div');
+            newDocument.className = 'input-group';
+            newDocument.innerHTML = `
+                    <input type="text" name="documents[${documentCounter}].nom" placeholder="Nom du document">
+                    <input type="file" name="documents[${documentCounter}].fichier" accept="application/pdf">
+                    <button type="button" class="remove-item-btn">Supprimer</button>
+                `;
+            documentsList.appendChild(newDocument);
+            documentCounter++;
+
+            // Attacher l'événement de suppression
+            newDocument.querySelector('.remove-item-btn').addEventListener('click', function() {
+                documentsList.removeChild(newDocument);
+            });
+        });
+
+        // Attacher l'événement aux boutons de suppression de documents existants
+        document.querySelectorAll('#documentsList .remove-item-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                this.parentElement.remove();
+            });
+        });
+
+        // Soumission du formulaire
+// Remplacez la partie de soumission du formulaire par ce code
+        document.getElementById('patientForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Créer un objet FormData
+            const formData = new FormData();
+
+            // Créer l'objet patient
+            const patientData = {
+                nom: document.getElementById('nom').value,
+                prenom: document.getElementById('prenom').value,
+                dateNaissance: document.getElementById('dateNaissance').value,
+                genre: document.getElementById('genre').value
+                // Ajoutez les autres champs au besoin
+            };
+
+            // IMPORTANT: Ajouter l'objet patient en tant que JSON au FormData
+            formData.append('patient', JSON.stringify(patientData));
+
+            // Ajouter l'image si elle existe
+            const imageFile = document.getElementById('image').files[0];
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
+
+            console.log('Envoi des données avec la partie patient:', JSON.stringify(patientData));
+
+            // Envoi à l'API
+            fetch('/api/patients', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(text || 'Erreur lors de l\'ajout du patient');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert('Patient ajouté avec succès!');
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de l\'ajout du patient: ' + error.message);
+                });
+        });
+    });
+</script>
+</body>
+</html>

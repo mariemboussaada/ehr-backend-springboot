@@ -25,4 +25,9 @@ public class WebController {
     public String chat() {
         return "chat";  // Assurez-vous que chat.html est dans le dossier resources/templates/
     }
+
+    @GetMapping("/add-patient")
+    public String addPatientPage() {
+        return "add-patient"; // Ceci fait référence à un fichier HTML nommé "add-patient.html"
+    }
 }

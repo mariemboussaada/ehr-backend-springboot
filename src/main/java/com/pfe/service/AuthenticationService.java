@@ -2,10 +2,14 @@ package com.pfe.service;
 
 import com.pfe.dto.request.AuthenticationRequest;
 import com.pfe.dto.request.RegisterRequest;
+import com.pfe.dto.request.ResetPasswordRequest;
 import com.pfe.dto.response.AuthenticationResponse;
 import com.pfe.model.Doctor;
 import com.pfe.repository.DoctorRepository;
+import com.pfe.repository.VerificationCodeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -13,6 +17,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -21,6 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -33,7 +40,8 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
 
 
-    public AuthenticationService(DoctorRepository doctorRepository, EmailService emailService, JwtService jwtService, PasswordEncoder passwordEncoder) {
+
+    public AuthenticationService(DoctorRepository doctorRepository, EmailService emailService, JwtService jwtService, PasswordEncoder passwordEncoder ) {
         this.doctorRepository = doctorRepository;
         this.emailService = emailService;
         this.jwtService = jwtService;
@@ -55,10 +63,10 @@ public class AuthenticationService {
                 .build();
     }
 
-    public String initiatePasswordReset(String email) {
+    public void initiatePasswordReset(String email) {
         var doctor = doctorRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Email non trouvé"));
-        return emailService.generateVerificationCode(email);
+        emailService.sendVerificationEmail(email);
     }
 
     public void resetPassword(String email, String code, String newPassword) {
@@ -109,6 +117,8 @@ public class AuthenticationService {
 
 
 
+
+
     public void logout(String token) {
         if (!StringUtils.hasText(token)) {
             throw new IllegalArgumentException("Token ne peut pas être vide");
@@ -124,18 +134,6 @@ public class AuthenticationService {
         } catch (Exception e) {
             throw new RuntimeException("Erreur lors de la déconnexion", e);
         }
-    }
-
-    public boolean checkEmailExists(String email) {
-        if (!isValidEmailFormat(email)) {
-            throw new IllegalArgumentException("Format d'email invalide");
-        }
-        return doctorRepository.findByEmail(email).isPresent();
-    }
-
-    private boolean isValidEmailFormat(String email) {
-        String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
-        return email.matches(emailRegex);
     }
 
     public void changePassword(String email, String oldPassword, String newPassword) {
@@ -156,4 +154,6 @@ public class AuthenticationService {
         doctor.setPassword(passwordEncoder.encode(newPassword));
         doctorRepository.save(doctor);
     }
+
+
 }

@@ -18,6 +18,7 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 @Setter
+@ToString
 public class Doctor implements UserDetails {
     @Id
     private String id;

@@ -4,14 +4,17 @@ import com.pfe.dto.request.AuthenticationRequest;
 import com.pfe.dto.request.RegisterRequest;
 import com.pfe.dto.request.ResetPasswordRequest;
 import com.pfe.dto.response.AuthenticationResponse;
+import com.pfe.repository.VerificationCodeRepository;
 import com.pfe.service.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -66,6 +69,30 @@ public class AuthenticationController {
         }
     }
 
+    @Autowired
+    private VerificationCodeRepository verificationCodeRepository;
+
+    @PostMapping("/reset-password/verify")
+    public ResponseEntity<String> verifyResetCode(@RequestBody ResetPasswordRequest request) {
+        try {
+            boolean codeValid = verificationCodeRepository
+                    .findByEmailAndCodeAndUsedFalseAndExpiryDateAfter(
+                            request.getEmail(),
+                            request.getCode(),
+                            LocalDateTime.now()
+                    )
+                    .isPresent();
+
+            if (codeValid) {
+                return ResponseEntity.ok("Code de vérification valide");
+            } else {
+                return ResponseEntity.badRequest().body("Code de vérification invalide ou expiré");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthenticationRequest request) {
         try {
@@ -90,19 +117,6 @@ public class AuthenticationController {
         try {
             authenticationService.resetPassword(request.getEmail(), request.getCode(), request.getNewPassword());
             return ResponseEntity.ok("Mot de passe réinitialisé avec succès");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
-    @GetMapping("/check-email")
-    public ResponseEntity<?> checkEmailExists(@RequestParam String email) {
-        try {
-            boolean exists = authenticationService.checkEmailExists(email);
-            if (!exists) {
-                return ResponseEntity.ok().body("Adresse email introuvable");
-            }
-            return ResponseEntity.ok().body("Email valide");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
