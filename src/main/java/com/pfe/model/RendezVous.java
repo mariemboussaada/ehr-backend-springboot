@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RendezVous {
-    private Date date;
+    private String date;
     private String heure;
     private String motif;
     private String notes;

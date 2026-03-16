@@ -23,7 +23,7 @@ public class PatientRequest {
     // Champs obligatoires
     private String nom;
     private String prenom;
-    private Date dateNaissance;
+    private String dateNaissance;
     private String genre;
     private String doctor;
 

@@ -4,7 +4,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -40,21 +42,21 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/",                // URL racine
+                                "/",
                                 "/index",
                                 "/chat",
                                 "/add-patient",
-                                "/api/test/**",// Page index
-                                "/login",          // Page login
-                                "/register",       // Page register
-                                "/error",          // Page erreur
-                                "/api/auth/**",    // Endpoints d'authentification
-                                "/static/**",      // Ressources statiques
-                                "/*.html",         // Fichiers HTML
-                                "/*.css",          // Fichiers CSS
-                                "/*.js",
-                                "/api/**"
+                                "/login",
+                                "/register",
+                                "/error",
+                                "/api/auth/**",        // Authentification publique
+                                "/api/test/**",        // Tests publics
+                                "/static/**",
+                                "/*.html",
+                                "/*.css",
+                                "/*.js"
                         ).permitAll()
+                        .requestMatchers("/api/patients/**").authenticated() // Explicitement protégé
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->
@@ -70,7 +72,10 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();

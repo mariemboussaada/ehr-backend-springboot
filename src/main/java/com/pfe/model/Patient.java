@@ -28,9 +28,8 @@ public class Patient {
     // Champs obligatoires
     private String nom;
     private String prenom;
-    @Field("date_naissance")
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private Date dateNaissance;
+
+    private String dateNaissance;
     private String genre;
     private String doctor; // Email du médecin
     private String image;

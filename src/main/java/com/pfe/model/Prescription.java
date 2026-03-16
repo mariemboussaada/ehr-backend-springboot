@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Prescription {
-    private Date date;
+    private String date;
     @Builder.Default
     private List<Medicament> medicaments = new ArrayList<>();
 }

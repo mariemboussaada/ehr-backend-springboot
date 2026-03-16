@@ -2,65 +2,53 @@ package com.pfe.service;
 
 import com.pfe.dto.request.AuthenticationRequest;
 import com.pfe.dto.request.RegisterRequest;
-import com.pfe.dto.request.ResetPasswordRequest;
 import com.pfe.dto.response.AuthenticationResponse;
 import com.pfe.model.Doctor;
 import com.pfe.repository.DoctorRepository;
-import com.pfe.repository.VerificationCodeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.time.LocalDateTime;
-import java.util.Objects;
-import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor // Garde seulement ça pour l'injection automatique
 public class AuthenticationService {
 
     private final DoctorRepository doctorRepository;
     private final EmailService emailService;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
-
-
-
-    public AuthenticationService(DoctorRepository doctorRepository, EmailService emailService, JwtService jwtService, PasswordEncoder passwordEncoder ) {
-        this.doctorRepository = doctorRepository;
-        this.emailService = emailService;
-        this.jwtService = jwtService;
-        this.passwordEncoder = passwordEncoder;
-    }
+    private final AuthenticationManager authenticationManager; // Maintenant injecté automatiquement
+    @Autowired
+    private TokenBlacklistService tokenBlacklistService;
+    // SUPPRIME le constructeur manuel - @RequiredArgsConstructor s'en occupe
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
-        var doctor = doctorRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Email non trouvé"));
+        try {
+            // Utilise Spring Security pour l'authentification
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
 
-        if (!passwordEncoder.matches(request.getPassword(), doctor.getPassword())) {
-            throw new RuntimeException("Mot de passe incorrect");
+            // Si on arrive ici, l'authentification a réussi
+            var doctor = doctorRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+            var token = jwtService.generateToken(doctor);
+
+            return AuthenticationResponse.builder()
+                    .token(token)
+                    .doctor(doctor)
+                    .build();
+
+        } catch (AuthenticationException e) {
+            throw new RuntimeException("Échec de l'authentification : " + e.getMessage());
         }
-
-        var token = jwtService.generateToken(doctor);
-        return AuthenticationResponse.builder()
-                .token(token)
-                .doctor(doctor)
-                .build();
     }
 
     public void initiatePasswordReset(String email) {
@@ -125,12 +113,21 @@ public class AuthenticationService {
         }
 
         try {
+            // Vérifier si le token est déjà blacklisté
+            if (tokenBlacklistService.isTokenBlacklisted(token)) {
+                throw new RuntimeException("Token déjà invalidé");
+            }
+
             String email = jwtService.extractEmail(token);
 
             Doctor doctor = doctorRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 
-            System.out.println("Déconnexion de l'utilisateur : " + email);
+            // Ajouter le token à la blacklist
+            tokenBlacklistService.blacklistToken(token, email);
+
+            System.out.println("Déconnexion réussie pour l'utilisateur : " + email);
+
         } catch (Exception e) {
             throw new RuntimeException("Erreur lors de la déconnexion", e);
         }

@@ -37,7 +37,9 @@ public class Doctor implements UserDetails {
     private boolean enabled = false;
 
     @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
+
+    private String createdAt = java.time.LocalDateTime.now().toString();
+
 
     @Builder.Default
     private List<String> patientIds = new ArrayList<>();
